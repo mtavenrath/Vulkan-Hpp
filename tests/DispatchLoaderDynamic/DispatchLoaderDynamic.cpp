@@ -22,6 +22,36 @@
 static char const* AppName = "DispatchLoaderDynamic";
 static char const* EngineName = "Vulkan.hpp";
 
+namespace vk {
+  class DynamicLoader {
+  public:
+    DynamicLoader() : m_success(false) {
+      m_library = LoadLibrary("vulkan-1.dll");
+      m_success = (m_library != 0);
+    }
+
+    ~DynamicLoader()
+    {
+      if (m_library)
+      {
+        FreeLibrary(m_library);
+      }
+    }
+
+    template <typename T>
+    T getProcAddress(const char* function) const
+    {
+      return (T)GetProcAddress(m_library, function);
+    }
+
+    bool success() const { return m_success; }
+      
+  private:
+    bool m_success;
+    HMODULE m_library;
+  };
+}
+
 int main(int /*argc*/, char ** /*argv*/)
 {
   try
@@ -30,7 +60,9 @@ int main(int /*argc*/, char ** /*argv*/)
     vk::DispatchLoaderDynamic dld0;
 
     HMODULE vulkanDll = LoadLibrary("vulkan-1.dll");
-    if (vulkanDll)
+    vk::DynamicLoader dl;
+
+    if (dl.)
     {
       // create a dispatcher, based on vkInstance/vkGetInstanceProcAddr only
       PFN_vkCreateInstance vkCreateInstance = PFN_vkCreateInstance(GetProcAddress(vulkanDll, "vkCreateInstance"));
