@@ -1016,6 +1016,39 @@ void VulkanHppGenerator::appendCommand(std::string & str, std::string const& ind
 void VulkanHppGenerator::appendDispatchLoaderDynamic(std::string & str)
 {
   str += R"(
+  class DynamicLoader {
+  public:
+    DynamicLoader() : m_success(false) {
+      m_library = LoadLibrary("vulkan-1.dll");
+      m_success = (m_library != 0);
+      if (!m_success) {
+        throw std::runtime_error("Failed to load vulkan library!");
+        // TODO there should be an InitializationFailedError, but msvc 2019 16.2.5 complains that the symbol does not exist
+      }
+    }
+
+    ~DynamicLoader()
+    {
+      if (m_library)
+      {
+        FreeLibrary(m_library);
+      }
+    }
+
+    template <typename T>
+    T getProcAddress(const char* function) const
+    {
+      return (T)GetProcAddress(m_library, function);
+    }
+
+    bool success() const { return m_success; }
+      
+  private:
+    bool m_success;
+    HMODULE m_library;
+  };
+)";
+  str += R"(
   class DispatchLoaderDynamic
   {
   public:
@@ -1051,6 +1084,21 @@ void VulkanHppGenerator::appendDispatchLoaderDynamic(std::string & str)
       init(static_cast<VkInstance>(instance), ::vkGetInstanceProcAddr, static_cast<VkDevice>(device), device ? ::vkGetDeviceProcAddr : nullptr);
     }
 #endif // !defined(VK_NO_PROTOTYPES)
+
+    DispatchLoaderDynamic(PFN_vkGetInstanceProcAddr getInstanceProcAddr)
+    {
+      init(getInstanceProcAddr);
+    }
+
+    void init(PFN_vkGetInstanceProcAddr getInstanceProcAddr)
+    {
+      VULKAN_HPP_ASSERT(getInstanceProcAddr);
+
+      vkGetInstanceProcAddr = getInstanceProcAddr;
+      vkEnumerateInstanceExtensionProperties = PFN_vkEnumerateInstanceExtensionProperties( vkGetInstanceProcAddr( NULL, "vkEnumerateInstanceExtensionProperties" ) );
+      vkEnumerateInstanceLayerProperties = PFN_vkEnumerateInstanceLayerProperties( vkGetInstanceProcAddr( NULL, "vkEnumerateInstanceLayerProperties" ) );
+      vkCreateInstance = PFN_vkCreateInstance( vkGetInstanceProcAddr( NULL, "vkCreateInstance" ) );
+    }
 
     // This interface does not require a linked vulkan library.
     DispatchLoaderDynamic( VkInstance instance, PFN_vkGetInstanceProcAddr getInstanceProcAddr, VkDevice device = VK_NULL_HANDLE, PFN_vkGetDeviceProcAddr getDeviceProcAddr = nullptr )
