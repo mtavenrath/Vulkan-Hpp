@@ -9713,6 +9713,10 @@ int main( int argc, char ** argv )
       , m_ptr( ptr )
     {}
 
+#if ( 9 <= __GNUC__ )
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Winit-list-lifetime"
+#endif
     ArrayProxy( std::initializer_list<T> const & list ) VULKAN_HPP_NOEXCEPT
       : m_count( static_cast<uint32_t>( list.size() ) )
       , m_ptr( list.begin() )
@@ -9734,7 +9738,9 @@ int main( int argc, char ** argv )
       : m_count( static_cast<uint32_t>( list.size() ) )
       , m_ptr( list.begin() )
     {}
-
+#if ( 9 <= __GNUC__ )
+#  pragma GCC diagnostic pop
+#endif
     template <size_t N>
     ArrayProxy( std::array<T, N> const & data ) VULKAN_HPP_NOEXCEPT
       : m_count( N )

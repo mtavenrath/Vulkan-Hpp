@@ -17,12 +17,6 @@
 
 #if defined( _MSC_VER )
 #  pragma warning( disable : 4127 )   // conditional expression is constant
-#elif defined( __GNUC__ )
-#  if ( 9 <= __GNUC__ )
-#    pragma GCC diagnostic ignored "-Winit-list-lifetime"
-#  endif
-#else
-// unknow compiler... just ignore the warnings for yourselves ;)
 #endif
 
 #include "../utils/geometries.hpp"

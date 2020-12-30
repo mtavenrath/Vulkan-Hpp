@@ -19,10 +19,6 @@
 // no need to ignore any warnings with MSVC
 #elif defined( __clang__ )
 #  pragma clang diagnostic ignored "-Wmissing-braces"
-#elif defined( __GNUC__ )
-#  if ( 9 <= __GNUC__ )
-#    pragma GCC diagnostic ignored "-Winit-list-lifetime"
-#  endif
 #else
 // unknow compiler... just ignore the warnings for yourselves ;)
 #endif
